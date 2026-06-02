@@ -1,0 +1,14 @@
+artifact_uri: file:///C:\Users\deepm\OneDrive\Documents\projectmoderator\spamwork\mlruns/516436036780334632/3eba4ce6087a42f6ab45a5bb8d483084/artifacts
+end_time: 1778736007853
+entry_point_name: ''
+experiment_id: '516436036780334632'
+lifecycle_stage: active
+run_id: 3eba4ce6087a42f6ab45a5bb8d483084
+run_name: clean-shrimp-306
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1778736003815
+status: 3
+tags: []
+user_id: deepm

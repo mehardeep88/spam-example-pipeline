@@ -64,17 +64,21 @@ class SpamClassifier:
         prediction = int(outputs[0][0])
 
         # Step 3: Get confidence from probabilities (if available)
+        # ONNX Runtime returns probabilities as a list of dicts:
+        #   outputs[1] = [{0: 0.05, 1: 0.95}]  (one dict per sample)
         confidence = 1.0
         if len(outputs) > 1:
             proba = outputs[1]
+            # Unwrap the list → get this sample's probabilities
             if isinstance(proba, list):
                 proba = proba[0]
-            if hasattr(proba, '__len__') and len(proba) > 0:
-                prob_dict = proba[0] if isinstance(proba[0], dict) else {}
-                if prob_dict:
-                    confidence = max(prob_dict.values())
-                else:
-                    confidence = float(np.max(proba))
+            # Now proba is either a dict {class: prob} or an array
+            if isinstance(proba, dict):
+                confidence = max(proba.values())
+            elif hasattr(proba, '__len__') and len(proba) > 0:
+                confidence = float(np.max(proba))
+            else:
+                confidence = float(proba)
 
         label = 'spam' if prediction == 1 else 'ham'
         return {

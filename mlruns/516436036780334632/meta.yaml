@@ -1,0 +1,8 @@
+artifact_location: file:///C:\Users\deepm\OneDrive\Documents\projectmoderator\spamwork\mlruns/516436036780334632
+creation_time: 1778736002849
+experiment_id: '516436036780334632'
+last_update_time: 1778736002849
+lifecycle_stage: active
+name: sms-spam-classifier
+trace_location: null
+workspace: default

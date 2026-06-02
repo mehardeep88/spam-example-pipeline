@@ -1,0 +1,15 @@
+[project]
+name = "spamwork"
+version = "0.1.0"
+description = "Add your description here"
+readme = "README.md"
+requires-python = ">=3.10"
+dependencies = [
+    "fastapi[standard]>=0.136.1",
+    "matplotlib>=3.10.9",
+    "mlflow>=3.12.0",
+    "onnxruntime<1.24",
+    "pandas>=2.3.3",
+    "scikit-learn>=1.7.2",
+    "skl2onnx>=1.20.0",
+]
