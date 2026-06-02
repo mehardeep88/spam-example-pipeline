@@ -7,12 +7,14 @@ Usage:
     python run_all.py 8        # Run just the API server (step 8)
     python run_all.py 9        # Run MLflow tracking (step 9)
     python run_all.py 10       # Run Active Learning simulation (step 10)
+    python run_all.py 11       # Run AWS S3+SQS demo (step 11)
 
 Note:
-    Steps 8-10 are separate phases and are best run individually:
+    Steps 8-11 are separate phases and are best run individually:
     - Step 8 starts a server (blocks until Ctrl+C)
     - Step 9 needs mlflow installed
     - Step 10 takes a few minutes (trains ~40 models)
+    - Step 11 needs boto3 + AWS credentials configured
 """
 import sys
 
@@ -39,6 +41,7 @@ def run_all(start=1, end=7):
         8: ("FastAPI Server", _run_api),
         9: ("MLflow Tracking", _run_mlflow),
         10: ("Active Learning Simulation", _run_active_learning),
+        11: ("AWS S3 + SQS Pipeline", _run_aws),
     }
 
     print("\n" + "=" * 60)
@@ -79,6 +82,12 @@ def _run_active_learning():
     """Run the AL vs Random simulation (step 10)."""
     from step10_active_learning import run_simulation
     run_simulation()
+
+
+def _run_aws():
+    """Run the AWS S3 + SQS demo (step 11)."""
+    from step11_aws import run_demo
+    run_demo()
 
 
 if __name__ == "__main__":

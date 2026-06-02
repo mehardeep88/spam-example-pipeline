@@ -1,0 +1,10 @@
+spamwork\__pycache__
+spamwork\.venv
+spamwork\.python-version
+spamwork\answers_and_guide.md
+spamwork\feedback_loop_and_aws_explainer.md
+spamwork\next_steps_roadmap.md
+spamwork\pipeline_explainer.md
+spamwork\step6_step7_deep_questions.md
+spamwork\step6_step7_viva_explainer.md
+spamwork\mlruns

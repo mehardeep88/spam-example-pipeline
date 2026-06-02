@@ -54,3 +54,10 @@ SGD_RANDOM_STATE = 42
 
 # ─── ONNX ────────────────────────────────────────────────
 ONNX_MODEL_PATH = MODEL_DIR / "spam_classifier.onnx"
+
+# ─── AWS (Step 11) ───────────────────────────────────────
+# Override with environment variables if needed:
+#   SPAM_S3_BUCKET, SPAM_SQS_QUEUE, AWS_DEFAULT_REGION
+AWS_S3_BUCKET = "spam-classifier-artifacts"
+AWS_SQS_QUEUE = "spam-review-queue"
+AWS_REGION    = "us-east-1"

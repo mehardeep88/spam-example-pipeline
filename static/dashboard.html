@@ -1,0 +1,739 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>SMS Spam Moderator</title>
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;500;700&display=swap" rel="stylesheet">
+    <style>
+        *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+        :root {
+            --bg: #0d0e12;
+            --bg-card: #15171e;
+            --bg-card-hover: #1a1d26;
+            --border: #252833;
+            --border-hover: #373c4d;
+            --text: #e1e4ea;
+            --text-sec: #9fa4b0;
+            --text-muted: #5e6370;
+            --accent: #e1e4ea;
+            --accent-bg: #222530;
+            --accent-bg-hover: #2e3240;
+            --success: #a3be8c;
+            --danger: #bf616a;
+            --warning: #ebcb8b;
+            --info: #88c0d0;
+        }
+
+        body {
+            font-family: 'JetBrains Mono', ui-monospace, 'SF Mono', 'Fira Code', 'Courier New', monospace;
+            background: var(--bg);
+            color: var(--text);
+            min-height: 100vh;
+            line-height: 1.6;
+            font-size: 0.9rem;
+        }
+
+        /* ── Header ── */
+        .header {
+            padding: 1.25rem 2rem;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            border-bottom: 1px solid var(--border);
+            background: var(--bg-card);
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+        .header-left { display: flex; align-items: center; gap: 0.75rem; }
+        .header h1 {
+            font-size: 1.2rem;
+            font-weight: 700;
+            color: var(--text);
+            letter-spacing: -0.02em;
+        }
+        .header-sub { font-size: 0.8rem; color: var(--text-muted); } 
+        .status-dot {
+            width: 8px; height: 8px;
+            display: inline-block;
+            margin-right: 6px;
+        }
+        .status-dot.green { background: var(--success); }
+        .status-dot.red { background: var(--danger); }
+        .status-dot.yellow { background: var(--warning); }
+        .conn-status {
+            display: flex; align-items: center;
+            font-size: 0.8rem; color: var(--text-sec);
+        }
+
+        /* ── Layout ── */
+        .container { max-width: 1280px; margin: 0 auto; padding: 1.5rem; }
+        .grid {
+            display: grid;
+            grid-template-columns: 1fr 360px;
+            gap: 1.5rem;
+        }
+        @media (max-width: 900px) {
+            .grid { grid-template-columns: 1fr; }
+        }
+
+        /* ── Card ── */
+        .card {
+            background: var(--bg-card);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1.5rem;
+            transition: border-color 0.2s, background-color 0.2s;
+        }
+        .card:hover {
+            border-color: var(--border-hover);
+        }
+        .card-title {
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 0.08em;
+            color: var(--text-muted);
+            margin-bottom: 1rem;
+        }
+
+        /* ── Classify Panel ── */
+        .classify-card { grid-row: span 2; }
+        textarea {
+            width: 100%;
+            min-height: 120px;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            padding: 1rem;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9rem;
+            resize: vertical;
+            transition: border-color 0.2s;
+        }
+        textarea:focus {
+            outline: none;
+            border-color: var(--border-hover);
+        }
+        textarea::placeholder { color: var(--text-muted); }
+
+        .examples {
+            display: flex; flex-wrap: wrap; gap: 0.5rem;
+            margin: 0.75rem 0;
+        }
+        .example-chip {
+            padding: 0.25rem 0.5rem;
+            background: var(--accent-bg);
+            border: 1px solid var(--border);
+            border-radius: 2px;
+            font-size: 0.75rem;
+            color: var(--text-sec);
+            cursor: pointer;
+            transition: border-color 0.2s, color 0.2s;
+        }
+        .example-chip:hover {
+            border-color: var(--border-hover);
+            color: var(--text);
+        }
+
+        .classify-btn {
+            width: 100%;
+            padding: 0.85rem;
+            margin-top: 0.5rem;
+            background: var(--accent-bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            color: var(--text);
+            font-family: inherit;
+            font-size: 0.9rem;
+            font-weight: 700;
+            cursor: pointer;
+            transition: background-color 0.2s, border-color 0.2s;
+        }
+        .classify-btn:hover:not(:disabled) {
+            background: var(--accent-bg-hover);
+            border-color: var(--border-hover);
+        }
+        .classify-btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        /* ── Result ── */
+        .result {
+            margin-top: 1.25rem;
+            padding: 1.25rem;
+            background: var(--bg);
+            border: 1px solid var(--border);
+            border-radius: 4px;
+            display: none;
+        }
+        .result.visible { display: block; }
+
+        .result-label {
+            display: inline-block;
+            padding: 0.4rem 1rem;
+            border-radius: 2px;
+            font-weight: 700;
+            font-size: 1rem;
+            letter-spacing: 0.05em;
+        }
+        .result-label.spam {
+            background: rgba(191, 97, 106, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(191, 97, 106, 0.3);
+        }
+        .result-label.ham {
+            background: rgba(163, 190, 140, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(163, 190, 140, 0.3);
+        }
+
+        .conf-section { margin-top: 1rem; }
+        .conf-bar {
+            width: 100%;
+            height: 6px;
+            background: var(--border);
+            border-radius: 2px;
+            overflow: hidden;
+            margin-top: 0.4rem;
+        }
+        .conf-fill {
+            height: 100%;
+            border-radius: 2px;
+            transition: width 0.5s ease;
+            background: var(--success);
+        }
+        .conf-fill.low { background: var(--danger); }
+        .conf-text {
+            display: flex; justify-content: space-between;
+            font-size: 0.85rem; color: var(--text-sec);
+            margin-top: 0.3rem;
+        }
+
+        .badges { display: flex; gap: 0.5rem; margin-top: 0.75rem; flex-wrap: wrap; }
+        .badge {
+            padding: 0.2rem 0.5rem;
+            border-radius: 2px;
+            font-size: 0.75rem;
+            font-weight: 500;
+        }
+        .badge.review {
+            background: rgba(235, 203, 139, 0.12);
+            color: var(--warning);
+            border: 1px solid rgba(235, 203, 139, 0.25);
+        }
+        .badge.confident {
+            background: rgba(163, 190, 140, 0.12);
+            color: var(--success);
+            border: 1px solid rgba(163, 190, 140, 0.25);
+        }
+        .badge.queued {
+            background: rgba(136, 192, 208, 0.12);
+            color: var(--info);
+            border: 1px solid rgba(136, 192, 208, 0.25);
+        }
+        .badge.not-queued {
+            background: rgba(94, 100, 112, 0.12);
+            color: var(--text-muted);
+            border: 1px solid rgba(94, 100, 112, 0.25);
+        }
+        .latency-text {
+            font-size: 0.75rem;
+            color: var(--text-muted);
+            margin-top: 0.5rem;
+        }
+
+        /* ── Status Cards ── */
+        .right-col { display: flex; flex-direction: column; gap: 1.5rem; }
+        .stat-row {
+            display: flex; justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid var(--border);
+            font-size: 0.85rem;
+        }
+        .stat-row:last-child { border-bottom: none; }
+        .stat-label { color: var(--text-muted); }
+        .stat-value { color: var(--text); font-weight: 500; }
+        .stat-value.healthy { color: var(--success); }
+        .stat-value.unhealthy { color: var(--danger); }
+        .stat-value.warn { color: var(--warning); }
+        .stat-value code {
+            font-family: inherit;
+            font-size: 0.85rem;
+            background: var(--bg);
+            padding: 0.15rem 0.4rem;
+            border-radius: 2px;
+        }
+
+        /* ── History ── */
+        .history-card { margin-top: 1.5rem; }
+        .history-table {
+            width: 100%;
+            border-collapse: collapse;
+            font-size: 0.85rem;
+        }
+        .history-table th {
+            text-align: left;
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-muted);
+            font-weight: 700;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+        .history-table td {
+            padding: 0.6rem 0.75rem;
+            border-bottom: 1px solid var(--border);
+            color: var(--text-sec);
+        }
+        .history-table tr:hover td { background: var(--bg-card-hover); }
+        .history-table .text-cell {
+            max-width: 300px;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+        .label-mini {
+            padding: 0.15rem 0.4rem;
+            border-radius: 2px;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+        }
+        .label-mini.spam {
+            background: rgba(191, 97, 106, 0.15);
+            color: var(--danger);
+            border: 1px solid rgba(191, 97, 106, 0.25);
+        }
+        .label-mini.ham {
+            background: rgba(163, 190, 140, 0.15);
+            color: var(--success);
+            border: 1px solid rgba(163, 190, 140, 0.25);
+        }
+        .empty-state {
+            text-align: center;
+            padding: 2rem;
+            color: var(--text-muted);
+            font-size: 0.85rem;
+        }
+
+        /* ── Scrollbar ── */
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: transparent; }
+        ::-webkit-scrollbar-thumb { background: var(--border); border-radius: 3px; }
+
+        /* ── Error ── */
+        .error-msg {
+            padding: 0.75rem 1rem;
+            background: rgba(191, 97, 106, 0.1);
+            border: 1px solid rgba(191, 97, 106, 0.2);
+            border-radius: 4px;
+            color: var(--danger);
+            font-size: 0.85rem;
+            margin-top: 1rem;
+            display: none;
+        }
+        .error-msg.visible { display: block; }
+    </style>
+</head>
+<body>
+
+<!-- Header -->
+<header class="header">
+    <div class="header-left">
+        <div>
+            <h1>SMS Spam Moderator</h1>
+            <div class="header-sub">Active Learning Content Moderation</div>
+        </div>
+    </div>
+    <div class="conn-status">
+        <span class="status-dot" id="conn-dot"></span>
+        <span id="conn-text">Checking...</span>
+    </div>
+</header>
+
+<!-- Main Content -->
+<div class="container">
+    <div class="grid">
+        <!-- Left: Classification Panel -->
+        <div class="card classify-card">
+            <div class="card-title">Classify Text</div>
+            <textarea id="input-text" placeholder="Type or paste a message to classify as spam or ham..." rows="5"></textarea>
+
+            <div class="examples">
+                <span class="example-chip" onclick="useExample(this)">FREE entry! Call NOW to win!</span>
+                <span class="example-chip" onclick="useExample(this)">Hey, are we still on for lunch?</span>
+                <span class="example-chip" onclick="useExample(this)">You won 10000 pounds! Claim now</span>
+                <span class="example-chip" onclick="useExample(this)">Can you pick up milk?</span>
+                <span class="example-chip" onclick="useExample(this)">Text WIN to 80888 for free prize</span>
+            </div>
+
+            <button class="classify-btn" id="classify-btn" onclick="classify()">
+                Classify
+            </button>
+
+            <div class="error-msg" id="error-msg"></div>
+
+            <div class="result" id="result"></div>
+        </div>
+
+        <!-- Right: Status Panels -->
+        <div class="right-col">
+            <!-- Health -->
+            <div class="card">
+                <div class="card-title">System Health</div>
+                <div id="health-content">
+                    <div class="stat-row">
+                        <span class="stat-label">Status</span>
+                        <span class="stat-value" id="h-status">Loading...</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Model</span>
+                        <span class="stat-value" id="h-model">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Test Prediction</span>
+                        <span class="stat-value" id="h-test">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Model Info -->
+            <div class="card">
+                <div class="card-title">Model Info</div>
+                <div id="model-content">
+                    <div class="stat-row">
+                        <span class="stat-label">Vocabulary</span>
+                        <span class="stat-value" id="m-vocab">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Threshold</span>
+                        <span class="stat-value" id="m-thresh">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">ONNX Size</span>
+                        <span class="stat-value" id="m-size">—</span>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Queue Status -->
+            <div class="card">
+                <div class="card-title">Review Queue (SQS)</div>
+                <div id="queue-content">
+                    <div class="stat-row">
+                        <span class="stat-label">SQS Status</span>
+                        <span class="stat-value" id="q-status">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">Pending</span>
+                        <span class="stat-value" id="q-pending">—</span>
+                    </div>
+                    <div class="stat-row">
+                        <span class="stat-label">In-Flight</span>
+                        <span class="stat-value" id="q-flight">—</span>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Human Review Queue -->
+    <div class="card history-card" id="review-card" style="display: none;">
+        <div class="card-title" style="display: flex; justify-content: space-between; align-items: center;">
+            <span>Human Review Queue (Active Learning)</span>
+            <button class="example-chip" onclick="pullReviewQueue()" style="border:none; padding: 0.4rem 1rem;">Poll SQS</button>
+        </div>
+        <div id="review-content">
+            <div class="empty-state">Loading messages from SQS...</div>
+        </div>
+    </div>
+
+    <!-- History -->
+    <div class="card history-card">
+        <div class="card-title">Prediction History</div>
+        <div id="history-content">
+            <div class="empty-state">No predictions yet. Classify some text above!</div>
+        </div>
+    </div>
+</div>
+
+<script>
+    // ─── API Calls ──────────────────────────────────────
+
+    async function classify() {
+        const text = document.getElementById('input-text').value.trim();
+        if (!text) return;
+
+        const btn = document.getElementById('classify-btn');
+        const errEl = document.getElementById('error-msg');
+        errEl.classList.remove('visible');
+        btn.disabled = true;
+        btn.textContent = 'Classifying...';
+
+        try {
+            const res = await fetch('/moderate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ text })
+            });
+            if (!res.ok) {
+                const err = await res.json();
+                throw new Error(err.detail || `HTTP ${res.status}`);
+            }
+            const data = await res.json();
+            displayResult(data);
+            loadHistory();
+        } catch (e) {
+            errEl.textContent = `Error: ${e.message}`;
+            errEl.classList.add('visible');
+        } finally {
+            btn.disabled = false;
+            btn.textContent = 'Classify';
+        }
+    }
+
+    function displayResult(d) {
+        const el = document.getElementById('result');
+        const isSpam = d.label === 'spam';
+        const conf = (d.confidence * 100).toFixed(1);
+        const low = d.confidence < 0.70;
+
+        el.innerHTML = `
+            <div class="result-label ${isSpam ? 'spam' : 'ham'}">${d.label.toUpperCase()}</div>
+            <div class="conf-section">
+                <div class="conf-bar">
+                    <div class="conf-fill ${low ? 'low' : ''}" style="width: 0%"
+                         data-target="${conf}"></div>
+                </div>
+                <div class="conf-text">
+                    <span>Confidence</span>
+                    <span>${conf}%</span>
+                </div>
+            </div>
+            <div class="badges">
+                ${d.should_review
+                    ? '<span class="badge review">Needs Review</span>'
+                    : '<span class="badge confident">Confident</span>'}
+                ${d.queued_to_sqs
+                    ? '<span class="badge queued">Queued to SQS</span>'
+                    : d.should_review
+                        ? '<span class="badge not-queued">SQS not available</span>'
+                        : ''}
+            </div>
+            <div class="latency-text">Latency: ${d.latency_ms}ms · ID: ${d.request_id.slice(0,8)}...</div>
+        `;
+        el.classList.add('visible');
+
+        // Animate confidence bar
+        requestAnimationFrame(() => {
+            const fill = el.querySelector('.conf-fill');
+            if (fill) fill.style.width = conf + '%';
+        });
+    }
+
+    async function loadHealth() {
+        try {
+            const res = await fetch('/health');
+            const d = await res.json();
+            const ok = d.status === 'healthy';
+
+            document.getElementById('h-status').textContent = d.status;
+            document.getElementById('h-status').className = 'stat-value ' + (ok ? 'healthy' : 'unhealthy');
+            document.getElementById('h-model').innerHTML = `<code>${d.model || '—'}</code>`;
+            document.getElementById('h-test').textContent = d.test_prediction || d.error || '—';
+
+            const dot = document.getElementById('conn-dot');
+            const txt = document.getElementById('conn-text');
+            dot.className = 'status-dot ' + (ok ? 'green' : 'red');
+            txt.textContent = ok ? 'Connected' : 'Model Error';
+        } catch {
+            document.getElementById('conn-dot').className = 'status-dot red';
+            document.getElementById('conn-text').textContent = 'Disconnected';
+            document.getElementById('h-status').textContent = 'Offline';
+            document.getElementById('h-status').className = 'stat-value unhealthy';
+        }
+    }
+
+    async function loadModelInfo() {
+        try {
+            const res = await fetch('/model/info');
+            if (!res.ok) return;
+            const d = await res.json();
+            document.getElementById('m-vocab').innerHTML = `<code>${d.vectorizer_vocab_size.toLocaleString()}</code>`;
+            document.getElementById('m-thresh').innerHTML = `<code>${(d.confidence_threshold * 100).toFixed(0)}%</code>`;
+            document.getElementById('m-size').innerHTML = `<code>${d.onnx_model_size_kb} KB</code>`;
+        } catch {}
+    }
+
+    async function loadQueueStatus() {
+        try {
+            const res = await fetch('/api/queue/status');
+            const d = await res.json();
+            if (d.available) {
+                document.getElementById('q-status').textContent = 'Connected';
+                document.getElementById('q-status').className = 'stat-value healthy';
+                document.getElementById('q-pending').textContent = d.pending;
+                document.getElementById('q-flight').textContent = d.in_flight;
+                
+                // Show the review UI if SQS is connected
+                document.getElementById('review-card').style.display = 'block';
+                if (!document.window_review_loaded) {
+                     pullReviewQueue();
+                     document.window_review_loaded = true;
+                }
+            } else {
+                document.getElementById('q-status').textContent = 'Not configured';
+                document.getElementById('q-status').className = 'stat-value warn';
+                document.getElementById('q-pending').textContent = '—';
+                document.getElementById('q-flight').textContent = '—';
+            }
+        } catch {
+            document.getElementById('q-status').textContent = 'Unavailable';
+            document.getElementById('q-status').className = 'stat-value unhealthy';
+        }
+    }
+
+    async function loadHistory() {
+        try {
+            const res = await fetch('/api/history');
+            const d = await res.json();
+            const el = document.getElementById('history-content');
+
+            if (!d.predictions || d.predictions.length === 0) {
+                el.innerHTML = '<div class="empty-state">No predictions yet. Classify some text above!</div>';
+                return;
+            }
+
+            let html = `<table class="history-table">
+                <thead><tr>
+                    <th>#</th><th>Text</th><th>Label</th>
+                    <th>Confidence</th><th>Review</th><th>SQS</th><th>Latency</th>
+                </tr></thead><tbody>`;
+
+            d.predictions.forEach((p, i) => {
+                const isSpam = p.label === 'spam';
+                const conf = (p.confidence * 100).toFixed(1);
+                html += `<tr>
+                    <td>${i + 1}</td>
+                    <td class="text-cell" title="${p.text.replace(/"/g, '&quot;')}">${escHtml(p.text)}</td>
+                    <td><span class="label-mini ${isSpam ? 'spam' : 'ham'}">${p.label}</span></td>
+                    <td>${conf}%</td>
+                    <td>${p.should_review ? 'REVIEW' : 'OK'}</td>
+                    <td>${p.queued_to_sqs ? 'SQS' : '—'}</td>
+                    <td>${p.latency_ms}ms</td>
+                </tr>`;
+            });
+
+            html += '</tbody></table>';
+            el.innerHTML = html;
+        } catch {}
+    }
+
+    async function pullReviewQueue() {
+        const el = document.getElementById('review-content');
+        el.innerHTML = '<div class="empty-state">Polling SQS for messages...</div>';
+        
+        try {
+            const res = await fetch('/api/queue/pull');
+            const d = await res.json();
+            
+            if (!d.messages || d.messages.length === 0) {
+                el.innerHTML = '<div class="empty-state">No messages waiting in the queue.</div>';
+                return;
+            }
+            
+            let html = `<table class="history-table">
+                <thead><tr>
+                    <th>Text</th><th>Model Guessed</th><th>Confidence</th><th>Your Action</th>
+                </tr></thead><tbody>`;
+                
+            window.currentReviews = d.messages; // save for submission
+            
+            d.messages.forEach((m, i) => {
+                const b = m.body;
+                const conf = (b.confidence * 100).toFixed(1);
+                const predStr = b.predicted_label === 1 ? 'SPAM' : 'HAM';
+                const pClass = b.predicted_label === 1 ? 'spam' : 'ham';
+                
+                html += `<tr>
+                    <td class="text-cell" style="max-width: 400px; white-space: normal;">${escHtml(b.text)}</td>
+                    <td><span class="label-mini ${pClass}">${predStr}</span></td>
+                    <td>${conf}%</td>
+                    <td>
+                        <button class="example-chip" style="color:var(--success); border-color:var(--success);" onclick="submitReview(${i}, 0)">Mark HAM</button>
+                        <button class="example-chip" style="color:var(--danger); border-color:var(--danger);" onclick="submitReview(${i}, 1)">Mark SPAM</button>
+                    </td>
+                </tr>`;
+            });
+            
+            html += '</tbody></table>';
+            el.innerHTML = html;
+            
+        } catch (e) {
+            el.innerHTML = `<div class="empty-state" style="color:var(--danger)">Error polling queue: ${e.message}</div>`;
+        }
+    }
+    
+    async function submitReview(index, trueLabel) {
+        const m = window.currentReviews[index];
+        if (!m) return;
+        
+        const payload = {
+            receipt_handle: m.receipt_handle,
+            text: m.body.text,
+            true_label: trueLabel,
+            predicted_label: m.body.predicted_label,
+            confidence: m.body.confidence
+        };
+        
+        try {
+            const res = await fetch('/api/queue/submit', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify(payload)
+            });
+            
+            if (res.ok) {
+                pullReviewQueue(); // refresh
+                loadQueueStatus();
+            } else {
+                alert("Failed to submit review.");
+            }
+        } catch (e) {
+            alert("Error: " + e.message);
+        }
+    }
+
+    function useExample(chip) {
+        document.getElementById('input-text').value = chip.textContent;
+    }
+
+    function escHtml(s) {
+        const d = document.createElement('div');
+        d.textContent = s;
+        return d.innerHTML;
+    }
+
+    // Allow Ctrl+Enter to classify
+    document.getElementById('input-text').addEventListener('keydown', (e) => {
+        if (e.key === 'Enter' && (e.ctrlKey || e.metaKey)) classify();
+    });
+
+    // ─── Init ───
+    loadHealth();
+    loadModelInfo();
+    loadQueueStatus();
+    loadHistory();
+
+    setInterval(loadHealth, 30000);
+    setInterval(loadQueueStatus, 20000);
+</script>
+
+</body>
+</html>

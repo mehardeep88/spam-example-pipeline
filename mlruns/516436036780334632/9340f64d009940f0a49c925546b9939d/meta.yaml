@@ -1,0 +1,14 @@
+artifact_uri: file:///C:\Users\deepm\OneDrive\Documents\projectmoderator\spamwork\mlruns/516436036780334632/9340f64d009940f0a49c925546b9939d/artifacts
+end_time: 1780290853766
+entry_point_name: ''
+experiment_id: '516436036780334632'
+lifecycle_stage: active
+run_id: 9340f64d009940f0a49c925546b9939d
+run_name: bald-cub-311
+source_name: ''
+source_type: 4
+source_version: ''
+start_time: 1780290851550
+status: 3
+tags: []
+user_id: deepm

@@ -1,0 +1,23 @@
+artifact_path: file:///C:\Users\deepm\OneDrive\Documents\projectmoderator\spamwork\mlruns/516436036780334632/models/m-4fd6b00554394db792fd21b21c0edb1c/artifacts
+flavors:
+  python_function:
+    env:
+      conda: conda.yaml
+      virtualenv: python_env.yaml
+    loader_module: mlflow.sklearn
+    model_path: model.pkl
+    predict_fn: predict
+    python_version: 3.10.20
+  sklearn:
+    code: null
+    pickled_model: model.pkl
+    serialization_format: cloudpickle
+    sklearn_version: 1.7.2
+    skops_trusted_types: null
+mlflow_version: 3.12.0
+model_id: m-4fd6b00554394db792fd21b21c0edb1c
+model_size_bytes: 66807
+model_uuid: m-4fd6b00554394db792fd21b21c0edb1c
+prompts: null
+run_id: 25510c8bf8c84852b01ef0a4d1645240
+utc_time_created: '2026-05-29 04:14:21.962113'

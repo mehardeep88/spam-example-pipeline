@@ -71,12 +71,12 @@ def run_eda(df: pd.DataFrame):
     print("=" * 50)
     
     # ─── 1. Basic Shape ─────────────────────────────────
-    print(f"\n📊 Dataset Shape: {df.shape[0]} rows × {df.shape[1]} columns")
+    print(f"\n Dataset Shape: {df.shape[0]} rows × {df.shape[1]} columns")
     print(f"   Columns: {list(df.columns)}")
     print(f"   Dtypes:\n{df.dtypes.to_string()}")
     
     # ─── 2. Class Distribution ──────────────────────────
-    print(f"\n📊 Class Distribution:")
+    print(f"\n Class Distribution:")
     counts = df['label'].value_counts()
     for label, count in counts.items():
         pct = count / len(df) * 100
@@ -90,7 +90,7 @@ def run_eda(df: pd.DataFrame):
     df['text_length'] = df['text'].str.len()
     df['word_count'] = df['text'].str.split().str.len()
     
-    print(f"\n📊 Text Length Statistics:")
+    print(f"\n Text Length Statistics:")
     for label in ['ham', 'spam']:
         subset = df[df['label'] == label]
         print(f"\n   {label.upper()}:")
@@ -100,32 +100,32 @@ def run_eda(df: pd.DataFrame):
         print(f"     Max characters: {subset['text_length'].max()}")
     
     # ─── 4. Sample Messages ────────────────────────────
-    print(f"\n📊 Sample HAM messages:")
+    print(f"\n Sample HAM messages:")
     for _, row in df[df['label'] == 'ham'].head(3).iterrows():
         print(f"   → {row['text'][:80]}...")
     
-    print(f"\n📊 Sample SPAM messages:")
+    print(f"\n Sample SPAM messages:")
     for _, row in df[df['label'] == 'spam'].head(3).iterrows():
         print(f"   → {row['text'][:80]}...")
     
     # ─── 5. Most Common Words ──────────────────────────
-    print(f"\n📊 Top 15 Words in SPAM:")
+    print(f"\n Top 15 Words in SPAM:")
     spam_words = ' '.join(df[df['label'] == 'spam']['text']).lower().split()
     for word, count in Counter(spam_words).most_common(15):
         print(f"   {word:>15s}: {count}")
     
-    print(f"\n📊 Top 15 Words in HAM:")
+    print(f"\n Top 15 Words in HAM:")
     ham_words = ' '.join(df[df['label'] == 'ham']['text']).lower().split()
     for word, count in Counter(ham_words).most_common(15):
         print(f"   {word:>15s}: {count}")
 
     # ─── 6. Missing Values Check ───────────────────────
-    print(f"\n📊 Missing Values:")
+    print(f"\n Missing Values:")
     print(f"   {df.isnull().sum().to_string()}")
     
     # ─── 7. Duplicate Check ────────────────────────────
     dupes = df.duplicated(subset='text').sum()
-    print(f"\n📊 Duplicates: {dupes} duplicate messages found")
+    print(f"\n Duplicates: {dupes} duplicate messages found")
     
     return df
 

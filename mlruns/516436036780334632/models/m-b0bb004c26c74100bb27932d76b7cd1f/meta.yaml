@@ -1,0 +1,10 @@
+artifact_location: file:///C:\Users\deepm\OneDrive\Documents\projectmoderator\spamwork\mlruns/516436036780334632/models/m-b0bb004c26c74100bb27932d76b7cd1f/artifacts
+creation_timestamp: 1780290810320
+experiment_id: '516436036780334632'
+last_updated_timestamp: 1780290817252
+model_id: m-b0bb004c26c74100bb27932d76b7cd1f
+model_type: null
+name: classifier_model
+source_run_id: 33763d6a59894fe3a83ccda6d3e73925
+status: 2
+status_message: null

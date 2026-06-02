@@ -10,11 +10,10 @@
 ✅ Step 5: Evaluate         — Test set metrics, confusion matrix
 ✅ Step 6: ONNX Export      — sklearn → ONNX conversion
 ✅ Step 7: Inference        — ONNX Runtime inference demo
-──────────────────────────────────────────────────
-⬜ Step 8: FastAPI endpoint  ← NEXT
-⬜ Step 9: MLflow tracking
-⬜ Step 10: Active learning simulation
-⬜ Step 11: S3 + SQS wiring (AWS)
+✅ Step 8: FastAPI endpoint  — REST API with /moderate
+✅ Step 9: MLflow tracking   — Experiment logging + sweeps
+✅ Step 10: Active learning  — AL vs Random simulation
+✅ Step 11: S3 + SQS wiring  — AWS feedback loop
 ```
 
 ---
